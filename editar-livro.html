@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editar livro · joyceeeira</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #402d24;
+      --muted: #6f5243;
+      --wine: #843e43;
+      --rule: #bca58c;
+      --paper: #fcf4e6;
+      font-family: system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      color: var(--ink);
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(#694b3716 .5px, transparent .8px) 0 0 / 5px 5px,
+        radial-gradient(ellipse at 34% -12%, #f4ecdf, #e8dac8 54%, #d7c2a9);
+    }
+    main { width: min(970px, calc(100% - 2.5rem)); margin: 0 auto; padding: 1.5rem 0 2.25rem; }
+    h1, h2, h3, p, blockquote { margin: 0; }
+    h1, h2 { font-family: Georgia, serif; font-weight: 400; letter-spacing: -.035em; }
+    h1 { font-size: clamp(2.5rem, 6vw, 3.45rem); line-height: 1; }
+    h2 { font-size: clamp(1.85rem, 4vw, 2.4rem); line-height: 1.14; overflow-wrap: anywhere; }
+    .brand {
+      padding-bottom: .8rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--rule);
+      font: italic 1.55rem/1.18 Georgia, serif;
+    }
+    .heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .project-status { margin: .65rem 0 1.6rem; color: var(--muted); line-height: 1.45; }
+    .book {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--paper);
+      box-shadow: 0 0 0 6px #634532, 0 12px 26px #4a2e2759;
+    }
+    .sheet { padding: clamp(1.3rem, 3.8vw, 2.35rem); min-width: 0; }
+    .preview { background-image: linear-gradient(270deg, #55382913, transparent 7%); }
+    .fields { border-left: 1px solid var(--rule); background: #f7eddd; }
+    .running {
+      padding-bottom: .6rem;
+      margin-bottom: 1.15rem;
+      border-bottom: 1px solid var(--rule);
+      color: var(--wine);
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .book-heading {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .cover {
+      display: grid;
+      place-items: center;
+      width: clamp(70px, 12vw, 105px);
+      flex: none;
+      aspect-ratio: 2 / 3;
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      background-color: #eee2d0;
+    }
+    .cover img { display: block; height: 100%; width: 100%; object-fit: contain; }
+    .cover p { text-align: center; color: var(--muted); padding: .3rem; font-size: .82rem; }
+    #quote-preview { margin-top: 1.15rem; }
+    #quote-preview h3 { color: var(--wine); font-size: .95rem; }
+    blockquote {
+      padding-left: .65rem;
+      margin-top: .55rem;
+      border-left: 2px solid #ad7971;
+      font: italic 1.12rem/1.5 Georgia, serif;
+      overflow-wrap: anywhere;
+    }
+    .field { display: grid; gap: .4rem; margin-bottom: 1.05rem; }
+    .field label, .field strong { font-weight: 650; }
+    .field small { color: var(--muted); line-height: 1.4; }
+    button, select, textarea { font: inherit; color: inherit; }
+    select, textarea {
+      width: 100%;
+      padding: .6rem .7rem;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      background: #fffaf2;
+    }
+    textarea { min-height: 7rem; resize: vertical; line-height: 1.45; }
+    button {
+      padding: .54rem .78rem;
+      min-height: 44px;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      background: #fffaf2;
+      cursor: pointer;
+    }
+    button:hover:enabled { border-color: var(--wine); }
+    button:disabled { opacity: .57; cursor: default; }
+    .primary { color: var(--paper); background: var(--wine); border-color: var(--wine); }
+    .primary:hover:enabled { background: #6f3039; }
+    :focus-visible { outline: 2px solid var(--wine); outline-offset: 3px; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+    #cover-status { overflow-wrap: anywhere; }
+    #status { min-height: 1.45rem; margin-top: .9rem; color: var(--muted); font-size: .9rem; line-height: 1.4; }
+    #status[data-error] { color: #872d35; }
+    @media (max-width: 660px) {
+      .book { grid-template-columns: minmax(0, 1fr); }
+      .fields { border-left: 0; border-top: 1px solid var(--rule); }
+      .preview { background-image: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">joyceeeira</p>
+    <header class="heading">
+      <h1>Editar livro</h1>
+      <button type="button" id="open-project" class="primary">Abrir pasta do projeto</button>
+    </header>
+    <p class="project-status" id="project-status" role="status">Para salvar, abra a pasta joyceeeira descompactada.</p>
+
+    <div class="book">
+      <section class="sheet preview" aria-label="Prévia da capa e das frases">
+        <p class="running">Prévia</p>
+        <div class="book-heading">
+          <div class="cover">
+            <img id="preview-cover" alt="Capa selecionada" hidden>
+            <p id="empty-cover">Sem imagem</p>
+          </div>
+          <h2 id="book-title">Seu livro</h2>
+        </div>
+        <section id="quote-preview" hidden>
+          <h3>Frases do livro</h3>
+          <div id="preview-phrases"></div>
+        </section>
+      </section>
+
+      <section class="sheet fields" aria-label="Capa e frases">
+        <div class="field">
+          <label for="book">Resenha</label>
+          <select id="book" disabled>
+            <option value="">Selecione a resenha</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <strong>Capa do livro</strong>
+          <input id="cover-file" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+          <div class="actions">
+            <button id="pick-cover" type="button">Adicionar capa</button>
+            <button id="save-cover" class="primary" type="button" disabled>Salvar capa</button>
+          </div>
+          <small id="cover-status">JPG, PNG ou WebP.</small>
+        </div>
+
+        <div class="field">
+          <label for="phrases">Frases do livro</label>
+          <textarea id="phrases" aria-describedby="phrases-help" rows="5"></textarea>
+          <small id="phrases-help">Escreva uma frase por linha.</small>
+        </div>
+        <div class="actions">
+          <button id="save-phrases" class="primary" type="button" disabled>Salvar frases</button>
+        </div>
+        <p id="status" role="status"></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const openProject = document.querySelector("#open-project");
+    const projectStatus = document.querySelector("#project-status");
+    const book = document.querySelector("#book");
+    const bookTitle = document.querySelector("#book-title");
+    const coverFile = document.querySelector("#cover-file");
+    const pickCover = document.querySelector("#pick-cover");
+    const saveCover = document.querySelector("#save-cover");
+    const coverStatus = document.querySelector("#cover-status");
+    const previewCover = document.querySelector("#preview-cover");
+    const emptyCover = document.querySelector("#empty-cover");
+    const phraseInput = document.querySelector("#phrases");
+    const savePhrases = document.querySelector("#save-phrases");
+    const quotePreview = document.querySelector("#quote-preview");
+    const previewPhrases = document.querySelector("#preview-phrases");
+    const status = document.querySelector("#status");
+
+    const supportsFolders = typeof window.showDirectoryPicker === "function";
+    let project = null;
+    let selectedBook = "";
+    let savedPhrases = "";
+    let selectedImage = null;
+    let imageUrl = "";
+    let busy = false;
+
+    function phrasesFrom(text) {
+      return text.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
+    }
+
+    function phraseText() {
+      const phrases = phrasesFrom(phraseInput.value);
+      return phrases.length ? phrases.join("\n") + "\n" : "";
+    }
+
+    function showMessage(text, isError = false) {
+      status.textContent = text;
+      status.toggleAttribute("data-error", isError);
+    }
+
+    function refreshControls() {
+      openProject.disabled = busy || !supportsFolders;
+      book.disabled = busy || book.options.length <= 1;
+      pickCover.disabled = busy;
+      phraseInput.disabled = busy;
+      saveCover.disabled = busy || !selectedBook || !selectedImage;
+      savePhrases.disabled = busy || !selectedBook || phraseText() === savedPhrases;
+    }
+
+    async function perform(action) {
+      if (busy) return;
+      busy = true;
+      showMessage("");
+      refreshControls();
+      try {
+        await action();
+      } catch (error) {
+        if (error.name === "NotAllowedError" || error.name === "SecurityError") {
+          showMessage("Abra este arquivo no Chrome ou Edge e permita editar a pasta do projeto.", true);
+        } else if (error.name !== "AbortError") {
+          showMessage(error.message || "Não foi possível concluir a edição.", true);
+        }
+      } finally {
+        busy = false;
+        refreshControls();
+      }
+    }
+
+    function updatePreview(image) {
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+      imageUrl = image ? URL.createObjectURL(image) : "";
+      if (imageUrl) previewCover.src = imageUrl;
+      else previewCover.removeAttribute("src");
+      previewCover.hidden = !imageUrl;
+      emptyCover.hidden = Boolean(imageUrl);
+    }
+
+    function updateQuotePreview() {
+      const phrases = phrasesFrom(phraseInput.value);
+      previewPhrases.replaceChildren(...phrases.map((phrase) => {
+        const quote = document.createElement("blockquote");
+        quote.textContent = phrase;
+        return quote;
+      }));
+      quotePreview.hidden = !phrases.length;
+      refreshControls();
+    }
+
+    async function optionalEntry(findEntry) {
+      try {
+        return await findEntry();
+      } catch (error) {
+        if (error.name === "NotFoundError") return null;
+        throw error;
+      }
+    }
+
+    async function storedFile(directory, name) {
+      if (!directory) return null;
+      const handle = await optionalEntry(() => directory.getFileHandle(name));
+      return handle ? await handle.getFile() : null;
+    }
+
+    async function openFolder() {
+      const folder = await window.showDirectoryPicker({ id: "joyceeeira", mode: "readwrite" });
+      const [settings, reviews, publicFolder] = await Promise.all([
+        optionalEntry(() => folder.getFileHandle("caderno.json")),
+        optionalEntry(() => folder.getDirectoryHandle("resenhas")),
+        optionalEntry(() => folder.getDirectoryHandle("public")),
+      ]);
+      if (!settings || !reviews || !publicFolder) {
+        throw new Error("Selecione a pasta joyceeeira que contém caderno.json, resenhas e public.");
+      }
+      const paths = [];
+      for await (const entry of reviews.values()) {
+        if (entry.kind === "file" && /^[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u.test(entry.name) && entry.name.length <= 103) {
+          paths.push(entry.name.slice(0, -3));
+        }
+      }
+      paths.sort((a, b) => a.localeCompare(b, "pt-BR"));
+      project = { reviews, publicFolder };
+      book.replaceChildren(new Option("Selecione a resenha", ""), ...paths.map((path) => new Option(path + ".md", path)));
+      projectStatus.textContent = paths.length
+        ? "Pasta aberta. Escolha a resenha que quer atualizar."
+        : "Copie modelo-resenha.md para a pasta resenhas, complete o texto e abra a pasta novamente.";
+      await loadBook(paths[0] ?? "");
+    }
+
+    async function loadBook(id) {
+      selectedBook = "";
+      book.value = id;
+      if (!id) {
+        bookTitle.textContent = "Seu livro";
+        return;
+      }
+      const [coverRoot, phraseFolder] = await Promise.all([
+        optionalEntry(() => project.publicFolder.getDirectoryHandle("capas")),
+        optionalEntry(() => project.reviews.getDirectoryHandle("frases")),
+      ]);
+      const coverFolder = coverRoot && await optionalEntry(() => coverRoot.getDirectoryHandle("enviadas"));
+      const [image, phrases] = await Promise.all([
+        storedFile(coverFolder, id + ".webp"),
+        storedFile(phraseFolder, id + ".txt"),
+      ]);
+      selectedBook = id;
+      selectedImage = null;
+      savedPhrases = phrases ? await phrases.text() : "";
+      phraseInput.value = savedPhrases;
+      bookTitle.textContent = id.charAt(0).toUpperCase() + id.slice(1).replaceAll("-", " ");
+      coverFile.value = "";
+      coverStatus.textContent = image?.size ? "Capa salva." : "JPG, PNG ou WebP.";
+      updatePreview(image?.size ? image : null);
+      updateQuotePreview();
+    }
+
+    async function webpFrom(file) {
+      if (!/\.(?:jpe?g|png|webp)$/iu.test(file.name)) {
+        throw new Error("Escolha uma imagem JPG, PNG ou WebP.");
+      }
+      let image;
+      try {
+        image = await createImageBitmap(file);
+      } catch {
+        throw new Error("O navegador não conseguiu abrir essa imagem.");
+      }
+      try {
+        const scale = Math.min(1, 1500 / Math.max(image.width, image.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.9));
+        if (blob?.type !== "image/webp") throw new Error("Não foi possível preparar a capa.");
+        return blob;
+      } finally {
+        image.close();
+      }
+    }
+
+    async function writeFile(directory, name, contents, expectedText) {
+      const handle = await directory.getFileHandle(name, { create: true });
+      const stream = await handle.createWritable({ mode: "exclusive" });
+      try {
+        if (expectedText !== undefined && await (await handle.getFile()).text() !== expectedText) {
+          throw new Error("As frases mudaram desde a abertura. Abra a pasta novamente para carregar o texto atual.");
+        }
+        await stream.write(contents);
+        await stream.close();
+      } catch (error) {
+        await stream.abort().catch(() => {});
+        throw error;
+      }
+    }
+
+    openProject.addEventListener("click", () => perform(openFolder));
+    book.addEventListener("change", () => perform(() => loadBook(book.value)));
+    pickCover.addEventListener("click", () => coverFile.click());
+    coverFile.addEventListener("change", () => {
+      const file = coverFile.files[0];
+      coverFile.value = "";
+      if (!file) return;
+      perform(async () => {
+        selectedImage = await webpFrom(file);
+        updatePreview(selectedImage);
+        coverStatus.textContent = file.name;
+      });
+    });
+    saveCover.addEventListener("click", () => perform(async () => {
+      const root = await project.publicFolder.getDirectoryHandle("capas", { create: true });
+      const folder = await root.getDirectoryHandle("enviadas", { create: true });
+      await writeFile(folder, selectedBook + ".webp", selectedImage);
+      selectedImage = null;
+      coverStatus.textContent = "Capa salva.";
+      showMessage("Capa salva. Atualize a página da resenha para conferir.");
+    }));
+    phraseInput.addEventListener("input", updateQuotePreview);
+    savePhrases.addEventListener("click", () => perform(async () => {
+      const contents = phraseText();
+      const folder = await project.reviews.getDirectoryHandle("frases", { create: true });
+      await writeFile(folder, selectedBook + ".txt", contents, savedPhrases);
+      savedPhrases = contents;
+      phraseInput.value = contents;
+      showMessage("Frases salvas. Atualize a página da resenha para conferir.");
+    }));
+
+    if (!supportsFolders) projectStatus.textContent = "Abra este arquivo no Chrome ou Edge do computador para salvar na pasta do projeto.";
+    refreshControls();
+  </script>
+</body>
+</html>
